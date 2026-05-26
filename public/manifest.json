@@ -2,9 +2,7 @@
   "name": "Figure Distances",
   "version": "0.1.0",
   "manifest_version": 1,
-  "background": {
-    "url": "background.html"
-  },
+  "background_url": "background.html",
   "action": {
     "title": "Figure Distances",
     "icon": "ruler-icon.svg",
