@@ -118,14 +118,15 @@ export default function App() {
 
     OBR.onReady(async () => {
       if (!mounted) return
-      setReady(true)
 
-      // Register the measure tool and mode (runs once per session on first popover open)
-      await registerTool()
+      // Fire-and-forget: don't let tool registration block the UI
+      registerTool().catch(() => {})
 
-      // Theme
+      // Theme + ready (not blocked by tool registration)
       const t = await OBR.theme.getTheme()
+      if (!mounted) return
       setTheme(t)
+      setReady(true)
       cleanups.push(OBR.theme.onChange(setTheme))
 
       // Initial source token from player metadata
