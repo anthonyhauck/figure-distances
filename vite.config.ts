@@ -4,7 +4,7 @@ import { resolve } from "path"
 
 export default defineConfig({
   plugins: [react()],
-  base: "/figure-distances/",
+  base: "/Figure-Distances/",
   build: {
     rollupOptions: {
       input: {
