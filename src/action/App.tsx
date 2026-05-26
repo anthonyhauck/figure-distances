@@ -1,52 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useState, useCallback } from "react"
 import OBR, { Item, Theme } from "@owlbear-rodeo/sdk"
-import { TOOL_ID, MODE_ID, SOURCE_TOKEN_KEY } from "../constants"
 import { getDistance, GridConfig } from "../util/distance"
 import { isInFog } from "../util/fog"
-
-async function registerTool() {
-  const icon = `${import.meta.env.BASE_URL}ruler-icon.svg`
-
-  // Mode must exist before the tool references it via defaultMode
-  try {
-    await OBR.tool.createMode({
-      id: MODE_ID,
-      icons: [
-        {
-          icon,
-          label: "Measure",
-          filter: { activeTools: [TOOL_ID] }, // show this mode only when our tool is active
-        },
-      ],
-      onToolClick: async (_ctx, event) => {
-        const target = event.target
-        if (!target || target.layer !== "CHARACTER") {
-          await OBR.player.setMetadata({ [SOURCE_TOKEN_KEY]: null })
-          return
-        }
-        await OBR.player.setMetadata({ [SOURCE_TOKEN_KEY]: target.id })
-      },
-    })
-  } catch {
-    // Already registered on a previous popover open
-  }
-
-  try {
-    await OBR.tool.create({
-      id: TOOL_ID,
-      icons: [
-        {
-          icon, // No filter — must always be visible so the button appears in the toolbar
-          label: "Measure Distances",
-        },
-      ],
-      shortcut: "M",
-      defaultMode: MODE_ID,
-    })
-  } catch {
-    // Already registered
-  }
-}
 
 interface TokenDistance {
   id: string
@@ -73,17 +28,17 @@ async function buildGridConfig(): Promise<GridConfig> {
 }
 
 export default function App() {
-  const [sourceId, setSourceId] = useState<string | null>(null)
-  const [sourceName, setSourceName] = useState("")
+  const [sourceName, setSourceName] = useState<string | null>(null)
   const [distances, setDistances] = useState<TokenDistance[]>([])
   const [theme, setTheme] = useState<Theme | null>(null)
   const [ready, setReady] = useState(false)
-  const lastSourceIdRef = useRef<string | null | undefined>(undefined)
 
-  const refresh = useCallback(async (srcId: string | null) => {
-    if (!srcId) {
+  const refresh = useCallback(async () => {
+    const selection = await OBR.player.getSelection()
+
+    if (!selection || selection.length === 0) {
+      setSourceName(null)
       setDistances([])
-      setSourceName("")
       return
     }
 
@@ -93,17 +48,17 @@ export default function App() {
       buildGridConfig(),
     ])
 
-    const source = characterItems.find((i) => i.id === srcId)
+    const source = characterItems.find((i) => selection.includes(i.id))
     if (!source) {
+      setSourceName(null)
       setDistances([])
-      setSourceName("")
       return
     }
 
-    setSourceName(source.name || "Selected Token")
+    setSourceName(source.name || "Token")
 
     const results: TokenDistance[] = characterItems
-      .filter((i) => i.id !== srcId)
+      .filter((i) => i.id !== source.id)
       .filter((i) => !isInFog(i, fogItems))
       .map((i) => {
         const { raw, display } = getDistance(source.position, i.position, gridConfig)
@@ -121,41 +76,16 @@ export default function App() {
     OBR.onReady(async () => {
       if (!mounted) return
 
-      // Fire-and-forget: don't let tool registration block the UI
-      registerTool().catch(() => {})
-
-      // Theme + ready (not blocked by tool registration)
       const t = await OBR.theme.getTheme()
       if (!mounted) return
       setTheme(t)
       setReady(true)
       cleanups.push(OBR.theme.onChange(setTheme))
 
-      // Initial source token from player metadata
-      const meta = await OBR.player.getMetadata()
-      const initId = (meta[SOURCE_TOKEN_KEY] as string | null) ?? null
-      lastSourceIdRef.current = initId
-      setSourceId(initId)
-      await refresh(initId)
+      await refresh()
 
-      // React to source token changes (set by the tool's onToolClick handler)
-      cleanups.push(
-        OBR.player.onChange(async (player) => {
-          const id = (player.metadata[SOURCE_TOKEN_KEY] as string | null) ?? null
-          if (id === lastSourceIdRef.current) return
-          lastSourceIdRef.current = id
-          setSourceId(id)
-          await refresh(id)
-        })
-      )
-
-      // Re-calculate when any token moves, is added, or removed
-      cleanups.push(
-        OBR.scene.items.onChange(async () => {
-          const currentId = lastSourceIdRef.current ?? null
-          if (currentId) await refresh(currentId)
-        })
-      )
+      cleanups.push(OBR.player.onChange(() => { refresh() }))
+      cleanups.push(OBR.scene.items.onChange(() => { refresh() }))
     })
 
     return () => {
@@ -173,8 +103,7 @@ export default function App() {
 
   const css = {
     root: {
-      fontFamily:
-        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       background: bg,
       color: textPrimary,
       minHeight: "100vh",
@@ -235,13 +164,10 @@ export default function App() {
     },
   }
 
-  if (!sourceId) {
+  if (!sourceName) {
     return (
       <div style={css.root}>
-        <p style={css.empty}>
-          Activate the <strong>Measure</strong> tool (M),<br />
-          then click a token on the map.
-        </p>
+        <p style={css.empty}>Select a character token<br />to see distances.</p>
       </div>
     )
   }
