@@ -66,9 +66,7 @@ function pathVertices(fog: Item): Vec2[] {
   return verts
 }
 
-export function isInFog(token: Item, fogItems: Item[]): boolean {
-  if (!token.visible) return true
-
+function insideAnyFogItem(token: Item, fogItems: Item[]): boolean {
   for (const fog of fogItems) {
     if (!fog.visible) continue
 
@@ -86,6 +84,17 @@ export function isInFog(token: Item, fogItems: Item[]): boolean {
     const local = toLocalSpace(token.position.x, token.position.y, fog.position.x, fog.position.y, fog.rotation ?? 0)
     if (pointInPolygon(local.x, local.y, verts)) return true
   }
-
   return false
+}
+
+export function isInFog(token: Item, fogItems: Item[], fogFilled: boolean): boolean {
+  if (!token.visible) return true
+
+  if (fogFilled) {
+    // Fog covers the whole scene; FOG layer items are revealed areas — token is hidden if outside all of them
+    return !insideAnyFogItem(token, fogItems)
+  } else {
+    // No global fill; FOG layer items are explicit fog zones
+    return insideAnyFogItem(token, fogItems)
+  }
 }

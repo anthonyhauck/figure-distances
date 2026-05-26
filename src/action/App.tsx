@@ -42,9 +42,10 @@ export default function App() {
       return
     }
 
-    const [characterItems, fogItems, gridConfig] = await Promise.all([
+    const [characterItems, fogItems, fogFilled, gridConfig] = await Promise.all([
       OBR.scene.items.getItems((item: Item) => item.layer === "CHARACTER"),
       OBR.scene.items.getItems((item: Item) => item.layer === "FOG"),
+      OBR.scene.fog.getFilled(),
       buildGridConfig(),
     ])
 
@@ -59,7 +60,7 @@ export default function App() {
 
     const results: TokenDistance[] = characterItems
       .filter((i) => i.id !== source.id)
-      .filter((i) => !isInFog(i, fogItems))
+      .filter((i) => !isInFog(i, fogItems, fogFilled))
       .map((i) => {
         const { raw, display } = getDistance(source.position, i.position, gridConfig)
         return { id: i.id, name: i.name || "Unknown", display, raw }
@@ -86,6 +87,7 @@ export default function App() {
 
       cleanups.push(OBR.player.onChange(() => { refresh() }))
       cleanups.push(OBR.scene.items.onChange(() => { refresh() }))
+      cleanups.push(OBR.scene.fog.onChange(() => { refresh() }))
     })
 
     return () => {
