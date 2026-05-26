@@ -1,8 +1,50 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import OBR, { Item, Theme } from "@owlbear-rodeo/sdk"
-import { SOURCE_TOKEN_KEY } from "../constants"
+import { TOOL_ID, MODE_ID, SOURCE_TOKEN_KEY } from "../constants"
 import { getDistance, GridConfig } from "../util/distance"
 import { isInFog } from "../util/fog"
+
+async function registerTool() {
+  try {
+    await OBR.tool.create({
+      id: TOOL_ID,
+      icons: [
+        {
+          icon: `${import.meta.env.BASE_URL}ruler-icon.svg`,
+          label: "Measure Distances",
+          filter: { activeTools: [TOOL_ID] },
+        },
+      ],
+      shortcut: "M",
+      defaultMode: MODE_ID,
+    })
+  } catch {
+    // Tool already registered (popover re-opened during same session)
+  }
+
+  try {
+    await OBR.tool.createMode({
+      id: MODE_ID,
+      icons: [
+        {
+          icon: `${import.meta.env.BASE_URL}ruler-icon.svg`,
+          label: "Measure",
+          filter: { activeTools: [TOOL_ID] },
+        },
+      ],
+      onToolClick: async (_ctx, event) => {
+        const target = event.target
+        if (!target || target.layer !== "CHARACTER") {
+          await OBR.player.setMetadata({ [SOURCE_TOKEN_KEY]: null })
+          return
+        }
+        await OBR.player.setMetadata({ [SOURCE_TOKEN_KEY]: target.id })
+      },
+    })
+  } catch {
+    // Mode already registered
+  }
+}
 
 interface TokenDistance {
   id: string
@@ -78,6 +120,9 @@ export default function App() {
       if (!mounted) return
       setReady(true)
 
+      // Register the measure tool and mode (runs once per session on first popover open)
+      await registerTool()
+
       // Theme
       const t = await OBR.theme.getTheme()
       setTheme(t)
@@ -90,7 +135,7 @@ export default function App() {
       setSourceId(initId)
       await refresh(initId)
 
-      // React to source token changes (set by the background page on tool click)
+      // React to source token changes (set by the tool's onToolClick handler)
       cleanups.push(
         OBR.player.onChange(async (player) => {
           const id = (player.metadata[SOURCE_TOKEN_KEY] as string | null) ?? null
