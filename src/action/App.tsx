@@ -14,6 +14,10 @@ interface FogDebug {
   filled: boolean
   count: number
   types: string[]
+  fogPos?: string
+  fogScale?: string
+  firstVert?: string
+  tokenPos?: string
 }
 
 async function buildGridConfig(): Promise<GridConfig> {
@@ -64,7 +68,17 @@ export default function App() {
     }
 
     setSourceName(source.name || "Token")
-    setFogDebug({ filled: fogFilled, count: fogItems.length, types: [...new Set(fogItems.map(i => i.type))] })
+    const fogItem = fogItems[0] as any
+    const firstVert = fogItem?.commands?.[0]
+    setFogDebug({
+      filled: fogFilled,
+      count: fogItems.length,
+      types: [...new Set(fogItems.map((i: Item) => i.type))],
+      fogPos: fogItem ? `${Math.round(fogItem.position.x)},${Math.round(fogItem.position.y)}` : "n/a",
+      fogScale: fogItem ? `${fogItem.scale?.x},${fogItem.scale?.y}` : "n/a",
+      firstVert: firstVert ? JSON.stringify(firstVert) : "n/a",
+      tokenPos: `${Math.round(source.position.x)},${Math.round(source.position.y)}`,
+    })
 
     const results: TokenDistance[] = characterItems
       .filter((i) => i.id !== source.id)
@@ -188,8 +202,11 @@ export default function App() {
       <div style={css.sourceName}>{sourceName}</div>
       <div style={css.divider} />
       {fogDebug && (
-        <div style={{ fontSize: "10px", color: textSecondary, marginBottom: "8px", fontFamily: "monospace" }}>
-          fog filled={String(fogDebug.filled)} items={fogDebug.count} types=[{fogDebug.types.join(",")}]
+        <div style={{ fontSize: "10px", color: textSecondary, marginBottom: "8px", fontFamily: "monospace", lineHeight: 1.6 }}>
+          <div>filled={String(fogDebug.filled)} items={fogDebug.count} types=[{fogDebug.types.join(",")}]</div>
+          <div>fogPos={fogDebug.fogPos} scale={fogDebug.fogScale}</div>
+          <div>cmd[0]={fogDebug.firstVert}</div>
+          <div>tokenPos={fogDebug.tokenPos}</div>
         </div>
       )}
       <div style={css.label}>To</div>
