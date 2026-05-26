@@ -4,8 +4,8 @@
   "manifest_version": 1,
   "action": {
     "title": "Figure Distances",
-    "icon": "ruler-icon.svg",
-    "popover": "action/index.html",
+    "icon": "/Figure-Distances/ruler-icon.svg",
+    "popover": "/Figure-Distances/action/index.html",
     "height": 420,
     "width": 320
   }
