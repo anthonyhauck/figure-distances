@@ -10,6 +10,12 @@ interface TokenDistance {
   raw: number
 }
 
+interface FogDebug {
+  filled: boolean
+  count: number
+  types: string[]
+}
+
 async function buildGridConfig(): Promise<GridConfig> {
   const [dpi, type, measurement, scale] = await Promise.all([
     OBR.scene.grid.getDpi(),
@@ -30,6 +36,7 @@ async function buildGridConfig(): Promise<GridConfig> {
 export default function App() {
   const [sourceName, setSourceName] = useState<string | null>(null)
   const [distances, setDistances] = useState<TokenDistance[]>([])
+  const [fogDebug, setFogDebug] = useState<FogDebug | null>(null)
   const [theme, setTheme] = useState<Theme | null>(null)
   const [ready, setReady] = useState(false)
 
@@ -57,6 +64,7 @@ export default function App() {
     }
 
     setSourceName(source.name || "Token")
+    setFogDebug({ filled: fogFilled, count: fogItems.length, types: [...new Set(fogItems.map(i => i.type))] })
 
     const results: TokenDistance[] = characterItems
       .filter((i) => i.id !== source.id)
@@ -179,6 +187,11 @@ export default function App() {
       <div style={css.label}>From</div>
       <div style={css.sourceName}>{sourceName}</div>
       <div style={css.divider} />
+      {fogDebug && (
+        <div style={{ fontSize: "10px", color: textSecondary, marginBottom: "8px", fontFamily: "monospace" }}>
+          fog filled={String(fogDebug.filled)} items={fogDebug.count} types=[{fogDebug.types.join(",")}]
+        </div>
+      )}
       <div style={css.label}>To</div>
       {distances.length === 0 ? (
         <p style={css.empty}>No other visible tokens found.</p>
