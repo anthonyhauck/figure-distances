@@ -5,31 +5,17 @@ import { getDistance, GridConfig } from "../util/distance"
 import { isInFog } from "../util/fog"
 
 async function registerTool() {
-  try {
-    await OBR.tool.create({
-      id: TOOL_ID,
-      icons: [
-        {
-          icon: `${import.meta.env.BASE_URL}ruler-icon.svg`,
-          label: "Measure Distances",
-          filter: { activeTools: [TOOL_ID] },
-        },
-      ],
-      shortcut: "M",
-      defaultMode: MODE_ID,
-    })
-  } catch {
-    // Tool already registered (popover re-opened during same session)
-  }
+  const icon = `${import.meta.env.BASE_URL}ruler-icon.svg`
 
+  // Mode must exist before the tool references it via defaultMode
   try {
     await OBR.tool.createMode({
       id: MODE_ID,
       icons: [
         {
-          icon: `${import.meta.env.BASE_URL}ruler-icon.svg`,
+          icon,
           label: "Measure",
-          filter: { activeTools: [TOOL_ID] },
+          filter: { activeTools: [TOOL_ID] }, // show this mode only when our tool is active
         },
       ],
       onToolClick: async (_ctx, event) => {
@@ -42,7 +28,23 @@ async function registerTool() {
       },
     })
   } catch {
-    // Mode already registered
+    // Already registered on a previous popover open
+  }
+
+  try {
+    await OBR.tool.create({
+      id: TOOL_ID,
+      icons: [
+        {
+          icon, // No filter — must always be visible so the button appears in the toolbar
+          label: "Measure Distances",
+        },
+      ],
+      shortcut: "M",
+      defaultMode: MODE_ID,
+    })
+  } catch {
+    // Already registered
   }
 }
 
