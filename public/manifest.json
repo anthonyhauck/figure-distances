@@ -2,6 +2,7 @@
   "name": "Figure Distances",
   "version": "0.1.0",
   "manifest_version": 1,
+  "icon": "/Figure-Distances/images/figure-distances.png",
   "action": {
     "title": "Figure Distances",
     "icon": "/Figure-Distances/ruler-icon.svg",
