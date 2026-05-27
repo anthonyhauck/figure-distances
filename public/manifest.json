@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "manifest_version": 1,
   "author": "Anthony Hauck",
-  "description": "Shows distances from the selected character token to all other character tokens visible to players using the distance units and settings of the current grid.",
+  "description": "Displays distances from the selected character token to all visible character tokens using current grid settings.",
   "icon": "/Figure-Distances/images/figure-distances.png",
   "action": {
     "title": "Figure Distances",
