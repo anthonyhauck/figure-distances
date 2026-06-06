@@ -4,11 +4,11 @@
   "manifest_version": 1,
   "author": "Anthony Hauck",
   "description": "Displays distances from the selected character token to all visible character tokens using current grid settings.",
-  "icon": "/Figure-Distances/images/figure-distances.png",
+  "icon": "/figure-distances/images/figure-distances.png",
   "action": {
     "title": "Figure Distances",
-    "icon": "/Figure-Distances/ruler-icon.svg",
-    "popover": "/Figure-Distances/action/index.html",
+    "icon": "/figure-distances/ruler-icon.svg",
+    "popover": "/figure-distances/action/index.html",
     "height": 420,
     "width": 320
   }
