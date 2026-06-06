@@ -2,7 +2,7 @@
 title: Figure Distances
 description: Instantly see distances from a selected token to every visible character on the map, sorted nearest to farthest.
 author: Anthony Hauck
-image: https://anthonyhauck.github.io/figure-distances/images/figure-distances.png
+image: https://anthonyhauck.github.io/figure-distances/images/figure-distances-banner.png
 icon: https://anthonyhauck.github.io/figure-distances/images/figure-distances.png
 tags:
   - tools
