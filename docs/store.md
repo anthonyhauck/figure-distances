@@ -5,9 +5,9 @@ author: Anthony Hauck
 image: https://anthonyhauck.github.io/figure-distances/images/figure-distances-banner.png
 icon: https://anthonyhauck.github.io/figure-distances/images/figure-distances.png
 tags:
-  - tools
+  - tool
   - combat
-  - utility
+  - other
 manifest: https://anthonyhauck.github.io/figure-distances/manifest.json
 learn-more: https://github.com/anthonyhauck/figure-distances
 ---
